@@ -1,0 +1,178 @@
+<div class="cards-row mb-3">
+  <div class="stat-card">
+    <div class="icon" style="background: #16a34a"><i class="bi bi-arrow-down-circle"></i></div>
+    <div>
+      <div class="label">Total Income</div>
+      <div class="value text-success"><%= formatCurrency(summary.totalIncome) %></div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="icon" style="background: #ef4444"><i class="bi bi-arrow-up-circle"></i></div>
+    <div>
+      <div class="label">Total Expense</div>
+      <div class="value text-danger"><%= formatCurrency(summary.totalExpense) %></div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="icon" style="background: #6366f1"><i class="bi bi-wallet2"></i></div>
+    <div>
+      <div class="label">Remaining</div>
+      <div class="value <%= summary.remaining >= 0 ? 'text-success' : 'text-danger' %>"><%= formatCurrency(summary.remaining) %></div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="icon" style="background: #0ea5e9"><i class="bi bi-calendar-check"></i></div>
+    <div>
+      <div class="label">This Month</div>
+      <div class="value"><%= formatCurrency(summary.monthRemaining) %></div>
+      <small class="text-muted">In: <%= formatCurrency(summary.monthIncome) %> · Out: <%= formatCurrency(summary.monthExpense) %></small>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="icon" style="background: #f59e0b"><i class="bi bi-cash"></i></div>
+    <div>
+      <div class="label">Cash Balance</div>
+      <div class="value"><%= formatCurrency(summary.cashBalance) %></div>
+    </div>
+  </div>
+</div>
+
+<div class="charts-row">
+  <div class="panel">
+    <div class="panel-title">Expense by Category (this month)</div>
+    <canvas id="chartCategory" height="220"></canvas>
+  </div>
+  <div class="panel">
+    <div class="panel-title">Monthly Trends (last 6 months)</div>
+    <canvas id="chartTrends" height="220"></canvas>
+  </div>
+  <div class="panel">
+    <div class="panel-title">Income vs Expense (this month)</div>
+    <canvas id="chartIE" height="220"></canvas>
+  </div>
+  <div class="panel">
+    <div class="panel-title">Payment Method Usage</div>
+    <canvas id="chartPM" height="220"></canvas>
+  </div>
+</div>
+
+<div class="charts-row mt-3">
+  <div class="panel">
+    <div class="panel-title">Recent Expenses</div>
+    <% if (!recent.recentExpenses.length) { %>
+      <div class="text-muted small">No expenses yet.</div>
+    <% } else { %>
+      <ul class="widget-list">
+        <% recent.recentExpenses.forEach((e) => { %>
+          <li>
+            <div>
+              <strong><%= e.title %></strong>
+              <div class="text-muted small"><%= formatDate(e.expense_date) %> · <%= e.category ? e.category.name : '—' %></div>
+            </div>
+            <strong class="text-danger"><%= formatCurrency(e.amount) %></strong>
+          </li>
+        <% }); %>
+      </ul>
+    <% } %>
+  </div>
+  <div class="panel">
+    <div class="panel-title">Recent Incomes</div>
+    <% if (!recent.recentIncomes.length) { %>
+      <div class="text-muted small">No incomes yet.</div>
+    <% } else { %>
+      <ul class="widget-list">
+        <% recent.recentIncomes.forEach((i) => { %>
+          <li>
+            <div>
+              <strong><%= i.title %></strong>
+              <div class="text-muted small"><%= formatDate(i.income_date) %> · <%= i.source || '—' %></div>
+            </div>
+            <strong class="text-success"><%= formatCurrency(i.amount) %></strong>
+          </li>
+        <% }); %>
+      </ul>
+    <% } %>
+  </div>
+  <div class="panel">
+    <div class="panel-title">Top Spending Categories</div>
+    <% if (!topCats.length) { %>
+      <div class="text-muted small">No data yet.</div>
+    <% } else { %>
+      <ul class="widget-list">
+        <% topCats.forEach((c) => { %>
+          <li>
+            <span><i class="bi <%= c.icon %> me-2" style="color: <%= c.color %>"></i><%= c.name %></span>
+            <strong><%= formatCurrency(c.total) %></strong>
+          </li>
+        <% }); %>
+      </ul>
+    <% } %>
+  </div>
+  <div class="panel">
+    <div class="panel-title">Account Balances</div>
+    <% if (!summary.accounts.length) { %>
+      <div class="text-muted small">No active payment methods yet.</div>
+    <% } else { %>
+      <ul class="widget-list">
+        <% summary.accounts.forEach((a) => { %>
+          <li>
+            <span><span class="color-dot me-2" style="background: <%= a.color %>"></span><%= a.name %> <small class="text-muted">· <%= a.type %></small></span>
+            <strong><%= formatCurrency(a.current_balance, a.currency) %></strong>
+          </li>
+        <% }); %>
+      </ul>
+    <% } %>
+  </div>
+</div>
+
+<script>
+  (function () {
+    const byCategory = <%- JSON.stringify(byCategory) %>;
+    const trends = <%- JSON.stringify(trends) %>;
+    const pmUsage = <%- JSON.stringify(pmUsage) %>;
+    const monthlyIE = { income: <%= summary.monthIncome %>, expense: <%= summary.monthExpense %> };
+
+    if (byCategory.length) {
+      new Chart(document.getElementById('chartCategory'), {
+        type: 'doughnut',
+        data: {
+          labels: byCategory.map(c => c.name),
+          datasets: [{ data: byCategory.map(c => c.total), backgroundColor: byCategory.map(c => c.color) }],
+        },
+        options: { plugins: { legend: { position: 'bottom' } } },
+      });
+    }
+
+    new Chart(document.getElementById('chartTrends'), {
+      type: 'line',
+      data: {
+        labels: trends.labels,
+        datasets: [
+          { label: 'Income', data: trends.incomes, borderColor: '#16a34a', backgroundColor: '#16a34a22', tension: 0.35, fill: true },
+          { label: 'Expense', data: trends.expenses, borderColor: '#ef4444', backgroundColor: '#ef444422', tension: 0.35, fill: true },
+        ],
+      },
+      options: { plugins: { legend: { position: 'bottom' } }, scales: { y: { beginAtZero: true } } },
+    });
+
+    new Chart(document.getElementById('chartIE'), {
+      type: 'bar',
+      data: {
+        labels: ['Income', 'Expense'],
+        datasets: [{ data: [monthlyIE.income, monthlyIE.expense], backgroundColor: ['#16a34a', '#ef4444'] }],
+      },
+      options: { plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } },
+    });
+
+    if (pmUsage.length) {
+      new Chart(document.getElementById('chartPM'), {
+        type: 'polarArea',
+        data: {
+          labels: pmUsage.map(p => p.name),
+          datasets: [{ data: pmUsage.map(p => p.total), backgroundColor: pmUsage.map(p => p.color) }],
+        },
+        options: { plugins: { legend: { position: 'bottom' } } },
+      });
+    }
+  })();
+</script>

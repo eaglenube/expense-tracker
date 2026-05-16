@@ -1,0 +1,28 @@
+<header class="topbar">
+  <button class="btn btn-light sidebar-toggle" id="sidebarToggle" aria-label="Toggle sidebar">
+    <i class="bi bi-list"></i>
+  </button>
+  <div class="topbar-title">
+    <h1 class="h5 m-0"><%= title %></h1>
+  </div>
+  <div class="topbar-actions">
+    <% if (currentUser) { %>
+      <div class="dropdown">
+        <button class="btn btn-light dropdown-toggle d-flex align-items-center gap-2" data-bs-toggle="dropdown">
+          <span class="avatar"><%= (currentUser.full_name || 'U').slice(0,1).toUpperCase() %></span>
+          <span class="d-none d-md-inline"><%= currentUser.full_name %></span>
+        </button>
+        <ul class="dropdown-menu dropdown-menu-end">
+          <li><a class="dropdown-item" href="/profile"><i class="bi bi-person me-2"></i>Profile</a></li>
+          <li><a class="dropdown-item" href="/settings"><i class="bi bi-gear me-2"></i>Settings</a></li>
+          <li><hr class="dropdown-divider"></li>
+          <li>
+            <form action="/logout" method="POST" class="px-3">
+              <button class="btn btn-link p-0 text-danger"><i class="bi bi-box-arrow-right me-2"></i>Logout</button>
+            </form>
+          </li>
+        </ul>
+      </div>
+    <% } %>
+  </div>
+</header>

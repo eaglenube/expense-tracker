@@ -1,0 +1,51 @@
+services:
+  db:
+    image: postgres:17-alpine
+    container_name: expense-tracker-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: expense
+      POSTGRES_PASSWORD: expense
+      POSTGRES_DB: expense_tracker_dev
+    volumes:
+      - dbdata:/var/lib/postgresql/data
+    ports:
+      - "5433:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U expense -d expense_tracker_dev"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  app:
+    build: .
+    container_name: expense-tracker-app
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      NODE_ENV: development
+      PORT: 3000
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_NAME: expense_tracker_dev
+      DB_USER: expense
+      DB_USERNAME: expense
+      DB_PASSWORD: expense
+      SESSION_SECRET: change-me-in-production
+      SEED_ON_START: "true"
+      SMTP_HOST: ""
+      SMTP_PORT: "587"
+      SMTP_USER: ""
+      SMTP_PASSWORD: ""
+      SMTP_FROM_EMAIL: "no-reply@example.com"
+      SMTP_FROM_NAME: "Expense Tracker"
+    ports:
+      - "3000:3000"
+    volumes:
+      - uploads:/app/src/public/uploads
+
+volumes:
+  dbdata:
+  uploads:

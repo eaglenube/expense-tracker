@@ -1,0 +1,63 @@
+<% const isEditing = !!editing; %>
+<div class="offcanvas offcanvas-end <%= isEditing ? 'show' : '' %>" tabindex="-1" id="incomeForm">
+  <div class="offcanvas-header">
+    <h5 class="offcanvas-title"><%= isEditing ? 'Edit Income' : 'New Income' %></h5>
+    <a href="/incomes" class="btn-close"></a>
+  </div>
+  <div class="offcanvas-body">
+    <form method="POST" enctype="multipart/form-data"
+          action="/incomes<%= isEditing ? '/' + editing.id + '?_method=PUT' : '' %>" data-loading>
+      <div class="mb-3">
+        <label class="form-label">Title *</label>
+        <input class="form-control" name="title" required value="<%= isEditing ? editing.title : '' %>" />
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Description</label>
+        <textarea class="form-control" name="description" rows="2"><%= isEditing ? (editing.description || '') : '' %></textarea>
+      </div>
+      <div class="row g-2">
+        <div class="col-md-6 mb-3">
+          <label class="form-label">Amount *</label>
+          <input class="form-control" type="number" step="0.01" min="0.01" name="amount" required value="<%= isEditing ? editing.amount : '' %>" />
+        </div>
+        <div class="col-md-6 mb-3">
+          <label class="form-label">Date *</label>
+          <input class="form-control" type="date" name="income_date" required value="<%= isEditing ? formatDateInput(editing.income_date) : new Date().toISOString().slice(0,10) %>" />
+        </div>
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Source</label>
+        <input class="form-control" name="source" value="<%= isEditing ? (editing.source || '') : '' %>" placeholder="Salary, Freelance, Interest..." />
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Payment Method</label>
+        <select class="form-select" name="payment_method_id">
+          <option value="">— None —</option>
+          <% paymentMethods.forEach((pm) => { %>
+            <option value="<%= pm.id %>" <%= isEditing && editing.payment_method_id === pm.id ? 'selected' : '' %>><%= pm.name %></option>
+          <% }); %>
+        </select>
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Attachment</label>
+        <div class="upload-drop">
+          <i class="bi bi-cloud-arrow-up fs-3 text-primary"></i>
+          <div class="upload-label small text-muted mt-2">Drag and drop or click to choose a file</div>
+          <input type="file" name="attachment" accept="image/*,application/pdf" hidden />
+        </div>
+        <% if (isEditing && editing.attachment_path) { %>
+          <div class="d-flex justify-content-between align-items-center mt-2">
+            <a href="<%= editing.attachment_path %>" target="_blank" class="small"><i class="bi bi-paperclip me-1"></i><%= editing.attachment_name %></a>
+            <label class="form-check small">
+              <input type="checkbox" name="remove_attachment" value="1" /> Remove
+            </label>
+          </div>
+        <% } %>
+      </div>
+      <div class="d-flex gap-2">
+        <button class="btn btn-primary" type="submit"><i class="bi bi-check2 me-1"></i>Save</button>
+        <a href="/incomes" class="btn btn-light">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>

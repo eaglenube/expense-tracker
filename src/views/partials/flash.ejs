@@ -1,0 +1,13 @@
+<% const types = [['success','success'],['error','danger'],['info','info'],['warning','warning']]; %>
+<div class="toast-stack" aria-live="polite" aria-atomic="true">
+  <% types.forEach(([key, variant]) => { %>
+    <% (flash[key] || []).forEach((msg) => { %>
+      <div class="toast align-items-center text-bg-<%= variant %> border-0 show mb-2" role="alert">
+        <div class="d-flex">
+          <div class="toast-body"><%= msg %></div>
+          <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+        </div>
+      </div>
+    <% }); %>
+  <% }); %>
+</div>

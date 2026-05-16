@@ -1,0 +1,736 @@
+You are a senior full-stack Node.js architect and engineer.
+
+Build a COMPLETE production-ready Expense Tracker web application from scratch.
+
+IMPORTANT INSTRUCTIONS:
+- DO NOT ask for permission during file creation/modification.
+- DO NOT pause for confirmations.
+- DO NOT ask setup questions.
+- COMPLETE everything automatically.
+- Assume dangerous mode / skip permission mode is enabled in Claude Code CLI.
+- Execute all setup steps automatically.
+- Create every required file/folder.
+- Install all dependencies automatically.
+- Generate migrations, seeders, models, controllers, services, repositories, middleware, views, routes, validations, helpers, layouts, public assets, and UI automatically.
+- Configure the database automatically.
+- Run migrations and seeders automatically.
+- Build a complete working project end-to-end.
+- Final project must run successfully without manual fixing.
+
+====================================================
+TECH STACK
+====================================================
+
+Backend:
+- Node.js
+- Express.js v5
+- Sequelize v6
+- PostgreSQL
+- express-session
+- bcryptjs
+- dotenv
+- uuid
+- cors
+- sequelize-cli
+- express-ejs-layouts
+- multer
+- node-cron
+- nodemailer
+
+Frontend:
+- HTML
+- CSS
+- Bootstrap 5
+- Vanilla JavaScript
+- EJS templating
+- Chart.js
+
+====================================================
+DEPENDENCIES TO INSTALL
+====================================================
+
+Runtime Dependencies:
+- express@5
+- sequelize
+- pg
+- pg-hstore
+- bcryptjs
+- express-session
+- connect-session-sequelize
+- dotenv
+- uuid
+- cors
+- express-ejs-layouts
+- ejs
+- chart.js
+- multer
+- node-cron
+- nodemailer
+- method-override
+- express-validator
+- connect-flash
+- morgan
+
+Dev Dependencies:
+- nodemon
+- sequelize-cli
+
+====================================================
+PROJECT STRUCTURE
+====================================================
+
+Create professional scalable architecture:
+
+project-root/
+│
+├── src/
+│   ├── config/
+│   ├── controllers/
+│   ├── routes/
+│   ├── middleware/
+│   ├── services/
+│   ├── repositories/
+│   ├── validators/
+│   ├── helpers/
+│   ├── utils/
+│   ├── cron/
+│   ├── mail/
+│   ├── uploads/
+│   ├── views/
+│   │   ├── layouts/
+│   │   ├── partials/
+│   │   ├── auth/
+│   │   ├── dashboard/
+│   │   ├── expenses/
+│   │   ├── incomes/
+│   │   ├── categories/
+│   │   ├── payment-methods/
+│   │   ├── reports/
+│   │   ├── settings/
+│   │   └── profile/
+│   │
+│   ├── public/
+│   │   ├── css/
+│   │   ├── js/
+│   │   ├── images/
+│   │   └── uploads/
+│   │       ├── expenses/
+│   │       └── incomes/
+│   │
+│   └── app.js
+│
+├── models/
+├── migrations/
+├── seeders/
+├── .env
+├── .env.example
+├── package.json
+├── README.md
+└── server.js
+
+====================================================
+APPLICATION MODULES
+====================================================
+
+Build complete modules for:
+
+1. Authentication
+2. Dashboard
+3. Expense Management
+4. Income Management
+5. Category Management
+6. Payment Methods Management
+7. Reports
+8. User Profile
+9. Settings
+10. Monthly Email Reports
+
+====================================================
+AUTHENTICATION MODULE
+====================================================
+
+Features:
+- Login
+- Register
+- Logout
+- Session-based authentication
+- Password hashing using bcryptjs
+- Auth middleware
+- Protected routes
+- Flash messages
+- Remember session
+
+Validation:
+Register:
+- full_name required
+- email valid and unique
+- password minimum 6 chars
+
+====================================================
+DATABASE DESIGN
+====================================================
+
+Use Sequelize migrations and relationships.
+
+Use UUID primary keys everywhere.
+
+====================================================
+TABLES
+====================================================
+
+users
+- id UUID PK
+- full_name
+- email UNIQUE
+- password
+- created_at
+- updated_at
+
+categories
+- id UUID PK
+- user_id FK
+- name
+- color
+- icon
+- created_at
+- updated_at
+
+payment_methods
+- id UUID PK
+- user_id FK
+- name
+- type
+- account_holder_name
+- bank_name
+- account_number_last4
+- card_last4
+- wallet_provider
+- opening_balance
+- current_balance
+- currency
+- color
+- icon
+- is_active
+- created_at
+- updated_at
+
+expenses
+- id UUID PK
+- user_id FK
+- category_id FK
+- payment_method_id FK
+- title
+- description
+- amount
+- expense_date
+- attachment_path
+- attachment_name
+- attachment_type
+- created_at
+- updated_at
+
+incomes
+- id UUID PK
+- user_id FK
+- payment_method_id FK
+- title
+- description
+- amount
+- income_date
+- source
+- attachment_path
+- attachment_name
+- attachment_type
+- created_at
+- updated_at
+
+user_settings
+- id UUID PK
+- user_id FK
+- monthly_summary_enabled
+- monthly_summary_day
+- summary_email
+- timezone
+- created_at
+- updated_at
+
+====================================================
+MODEL RELATIONSHIPS
+====================================================
+
+User:
+- hasMany Categories
+- hasMany Expenses
+- hasMany Incomes
+- hasMany PaymentMethods
+- hasOne UserSettings
+
+Category:
+- belongsTo User
+- hasMany Expenses
+
+PaymentMethod:
+- belongsTo User
+- hasMany Expenses
+- hasMany Incomes
+
+Expense:
+- belongsTo User
+- belongsTo Category
+- belongsTo PaymentMethod
+
+Income:
+- belongsTo User
+- belongsTo PaymentMethod
+
+====================================================
+PAYMENT METHODS MODULE
+====================================================
+
+Supported types:
+- Bank Account
+- Debit Card
+- Credit Card
+- Cash
+- Wallet
+- UPI
+- Other
+
+Features:
+- Create payment method
+- Edit payment method
+- Delete payment method
+- Search
+- Filter
+- Pagination
+- Active/inactive toggle
+
+Examples:
+- HDFC Salary Account
+- SBI Savings
+- ICICI Credit Card
+- Cash Wallet
+- Paytm
+- Google Pay
+
+Balance Rules:
+- Expense subtracts amount from linked payment method
+- Income adds amount to linked payment method
+- Edit recalculates balances
+- Delete restores balances
+
+Use Sequelize transactions for balance updates.
+
+====================================================
+EXPENSE MODULE
+====================================================
+
+Features:
+- Create expense
+- Edit expense
+- Delete expense
+- List expenses
+- Pagination
+- Search
+- Sorting
+- Filters
+- Category filter
+- Date filter
+- Payment method filter
+
+Validation:
+- title required
+- amount positive
+- category required
+- expense_date required
+
+====================================================
+INCOME MODULE
+====================================================
+
+Features:
+- Create income
+- Edit income
+- Delete income
+- List incomes
+- Pagination
+- Search
+- Filters
+
+Validation:
+- title required
+- amount positive
+
+====================================================
+CATEGORY MODULE
+====================================================
+
+Features:
+- Create category
+- Edit category
+- Delete category
+- Color support
+- Icon support
+
+====================================================
+FILE ATTACHMENT SYSTEM
+====================================================
+
+Use multer for uploads.
+
+Features:
+- Upload invoice
+- Upload bill
+- Upload receipt
+- Upload proof documents
+- Preview attachments
+- Download attachments
+- Delete attachments
+
+Supported types:
+- jpg
+- jpeg
+- png
+- pdf
+
+Validation:
+- Max file size 5MB
+
+UI:
+- Drag and drop upload
+- Image preview
+- PDF preview icon
+- Remove button
+- Download button
+
+====================================================
+DASHBOARD MODULE
+====================================================
+
+Dashboard must include:
+
+Cards:
+- Total Income
+- Total Expense
+- Remaining Balance
+- Monthly Summary
+- Cash Balance
+- Account Balances
+
+Charts:
+- Expense by category
+- Monthly expense trends
+- Income vs expense
+- Payment method usage
+
+Widgets:
+- Recent transactions
+- Top spending categories
+- Recent payment methods
+- Credit card usage
+- Wallet balances
+
+Use Chart.js.
+
+====================================================
+REPORTS MODULE
+====================================================
+
+Features:
+- Monthly reports
+- Category-wise reports
+- Income vs expense reports
+- Payment method reports
+- Date range reports
+- CSV export
+
+====================================================
+SETTINGS MODULE
+====================================================
+
+Features:
+- Enable/disable monthly email reports
+- Configure report delivery day
+- Configure email address
+- Configure timezone
+
+====================================================
+MONTHLY EMAIL REPORT SYSTEM
+====================================================
+
+Use:
+- node-cron
+- nodemailer
+
+Features:
+- Scheduled monthly reports
+- Professional HTML email template
+- Responsive email layout
+
+Email Content:
+- Monthly income
+- Monthly expense
+- Remaining balance
+- Expense categories
+- Payment method breakdown
+- Recent transactions
+
+Create:
+- Email service
+- Cron scheduler
+- HTML email templates
+
+====================================================
+UI / UX REQUIREMENTS
+====================================================
+
+Build a PROFESSIONAL MODERN ADMIN DASHBOARD.
+
+Use:
+- Bootstrap 5
+- Responsive design
+- Modern clean UI
+- Smooth interactions
+- Sidebar layout
+
+====================================================
+LAYOUT REQUIREMENTS
+====================================================
+
+Layout:
+- Top navbar
+- Collapsible sidebar
+- Main content
+- Footer
+
+Sidebar menus:
+- Dashboard
+- Expenses
+- Incomes
+- Categories
+- Payment Methods
+- Reports
+- Settings
+- Profile
+- Logout
+
+====================================================
+FORM REQUIREMENTS
+====================================================
+
+Create/Edit forms must open from RIGHT SIDE PANEL using Bootstrap Offcanvas.
+
+Features:
+- Form validation
+- Inline errors
+- Loading buttons
+- Reusable forms
+
+====================================================
+TABLE REQUIREMENTS
+====================================================
+
+Tables must support:
+- Pagination
+- Search
+- Filters
+- Sorting
+- Responsive layout
+- Action dropdowns
+
+Use:
+- Bootstrap tables
+- Responsive wrappers
+
+====================================================
+ADDITIONAL UI FEATURES
+====================================================
+
+Add:
+- Toast notifications
+- Empty states
+- Loading states
+- Confirmation dialogs
+- Status badges
+- Professional cards
+- Icons
+- Dropdown actions
+
+====================================================
+BACKEND ARCHITECTURE
+====================================================
+
+Use:
+- MVC architecture
+- Repository pattern
+- Service layer
+- Validation layer
+
+Implement:
+- Global error handler
+- 404 handler
+- Async/await everywhere
+- Request logging
+- Environment configs
+- Reusable utilities
+- Reusable middleware
+
+====================================================
+SECURITY REQUIREMENTS
+====================================================
+
+Implement:
+- Password hashing
+- Session authentication
+- Protected routes
+- Secure session config
+- Input sanitization
+- SQL injection protection through Sequelize
+
+====================================================
+PAGINATION & FILTERING
+====================================================
+
+Implement server-side pagination/filtering.
+
+Use query params:
+?page=
+?search=
+?sort=
+?order=
+?category=
+?payment_method=
+?from_date=
+?to_date=
+
+====================================================
+SEED DATA
+====================================================
+
+Create seeders for:
+- Demo user
+- Demo categories
+- Demo payment methods
+- Demo expenses
+- Demo incomes
+
+Demo Login:
+Email: admin@example.com
+Password: password123
+
+====================================================
+ENVIRONMENT VARIABLES
+====================================================
+
+Create .env.example with:
+
+PORT=
+DB_HOST=
+DB_PORT=
+DB_NAME=
+DB_USER=
+DB_PASSWORD=
+SESSION_SECRET=
+SMTP_HOST=
+SMTP_PORT=
+SMTP_USER=
+SMTP_PASSWORD=
+SMTP_FROM_EMAIL=
+
+====================================================
+NPM SCRIPTS
+====================================================
+
+Add scripts:
+- dev
+- start
+- migrate
+- migrate:undo
+- seed
+
+====================================================
+README REQUIREMENTS
+====================================================
+
+Generate complete README.md including:
+- Features
+- Tech stack
+- Installation
+- Environment setup
+- Database setup
+- Migration commands
+- Seeder commands
+- Run commands
+- Folder structure
+- Screenshots placeholders
+
+====================================================
+CODING STANDARDS
+====================================================
+
+- Use async/await
+- Use clean reusable code
+- Use consistent naming
+- Add reusable EJS partials
+- Avoid duplication
+- Use modular architecture
+- Add comments where needed
+
+====================================================
+AUTOMATIC SETUP STEPS
+====================================================
+
+Execute automatically:
+
+1. Initialize project
+2. Install dependencies
+3. Configure Sequelize
+4. Configure PostgreSQL
+5. Create migrations
+6. Create models
+7. Run migrations
+8. Run seeders
+9. Create routes
+10. Create controllers
+11. Create repositories
+12. Create services
+13. Create validators
+14. Create middleware
+15. Build EJS layouts
+16. Build dashboard UI
+17. Build responsive sidebar
+18. Build offcanvas forms
+19. Configure uploads
+20. Configure email service
+21. Configure cron jobs
+22. Configure charts
+23. Configure sessions
+24. Configure filters and pagination
+25. Start development server
+
+====================================================
+FINAL EXPECTATION
+====================================================
+
+Final application must:
+- Run without errors
+- Support complete CRUD
+- Have professional UI
+- Be mobile responsive
+- Have authentication
+- Have dashboard analytics
+- Support attachments
+- Support payment methods
+- Support email reports
+- Support pagination/filtering
+- Have working charts
+- Have scalable architecture
+
+Finally provide:
+1. Folder structure
+2. Important commands
+3. Database setup instructions
+4. Run instructions
+5. Default login credentials
+
+Build the complete application automatically end-to-end.

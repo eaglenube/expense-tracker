@@ -1,0 +1,28 @@
+<% const qs = (override) => {
+  const merged = { ...(query || {}), ...override };
+  const usp = new URLSearchParams();
+  Object.entries(merged).forEach(([k,v]) => { if (v !== undefined && v !== null && v !== '') usp.set(k, v); });
+  const s = usp.toString();
+  return s ? `?${s}` : '';
+}; %>
+<% if (pagination && pagination.totalPages > 1) { %>
+<nav aria-label="pagination" class="mt-3">
+  <ul class="pagination justify-content-end mb-0">
+    <li class="page-item <%= pagination.hasPrev ? '' : 'disabled' %>">
+      <a class="page-link" href="<%= qs({ page: pagination.prevPage }) %>">«</a>
+    </li>
+    <% for (let i = 1; i <= pagination.totalPages; i++) { %>
+      <% if (i === 1 || i === pagination.totalPages || Math.abs(i - pagination.page) <= 2) { %>
+        <li class="page-item <%= i === pagination.page ? 'active' : '' %>">
+          <a class="page-link" href="<%= qs({ page: i }) %>"><%= i %></a>
+        </li>
+      <% } else if (Math.abs(i - pagination.page) === 3) { %>
+        <li class="page-item disabled"><span class="page-link">…</span></li>
+      <% } %>
+    <% } %>
+    <li class="page-item <%= pagination.hasNext ? '' : 'disabled' %>">
+      <a class="page-link" href="<%= qs({ page: pagination.nextPage }) %>">»</a>
+    </li>
+  </ul>
+</nav>
+<% } %>

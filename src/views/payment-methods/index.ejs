@@ -1,0 +1,154 @@
+<% const isEditing = !!editing; %>
+<div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+  <div>
+    <h2 class="h4 m-0">Payment Methods</h2>
+    <small class="text-muted">Track balances across bank accounts, cards, wallets and cash.</small>
+  </div>
+  <button class="btn btn-primary" data-bs-toggle="offcanvas" data-bs-target="#pmForm">
+    <i class="bi bi-plus-lg me-1"></i> New Payment Method
+  </button>
+</div>
+
+<form class="filters-bar" method="GET" action="/payment-methods">
+  <input class="form-control" name="search" placeholder="Search by name..." value="<%= filters.search || '' %>" />
+  <select class="form-select" name="type">
+    <option value="">All types</option>
+    <% types.forEach((t) => { %>
+      <option value="<%= t %>" <%= filters.type === t ? 'selected' : '' %>><%= t %></option>
+    <% }); %>
+  </select>
+  <select class="form-select" name="is_active">
+    <option value="">Active &amp; inactive</option>
+    <option value="true" <%= filters.is_active === 'true' ? 'selected' : '' %>>Active only</option>
+    <option value="false" <%= filters.is_active === 'false' ? 'selected' : '' %>>Inactive only</option>
+  </select>
+  <button class="btn btn-outline-primary"><i class="bi bi-funnel me-1"></i>Filter</button>
+  <a href="/payment-methods" class="btn btn-outline-secondary">Reset</a>
+</form>
+
+<div class="table-wrapper">
+  <% if (!items.length) { %>
+    <div class="empty-state">
+      <i class="bi bi-credit-card-2-front"></i>
+      <p class="mt-2 mb-0">No payment methods yet.</p>
+    </div>
+  <% } else { %>
+    <div class="table-responsive">
+      <table class="table align-middle">
+        <thead>
+          <tr><th>Name</th><th>Type</th><th>Details</th><th class="text-end">Balance</th><th>Status</th><th class="text-end">Actions</th></tr>
+        </thead>
+        <tbody>
+          <% items.forEach((pm) => { %>
+            <tr>
+              <td>
+                <span class="color-dot" style="background: <%= pm.color %>"></span>
+                <strong class="ms-2"><%= pm.name %></strong>
+              </td>
+              <td><span class="chip"><%= pm.type %></span></td>
+              <td class="text-muted small">
+                <% if (pm.bank_name) { %><div><i class="bi bi-bank me-1"></i><%= pm.bank_name %></div><% } %>
+                <% if (pm.account_number_last4) { %><div>A/C •••• <%= pm.account_number_last4 %></div><% } %>
+                <% if (pm.card_last4) { %><div>Card •••• <%= pm.card_last4 %></div><% } %>
+                <% if (pm.wallet_provider) { %><div><%= pm.wallet_provider %></div><% } %>
+              </td>
+              <td class="text-end"><strong><%= formatCurrency(pm.current_balance, pm.currency) %></strong></td>
+              <td>
+                <% if (pm.is_active) { %><span class="chip success">Active</span><% } else { %><span class="chip danger">Inactive</span><% } %>
+              </td>
+              <td class="text-end">
+                <div class="dropdown">
+                  <button class="btn btn-sm btn-light" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></button>
+                  <ul class="dropdown-menu dropdown-menu-end">
+                    <li><a class="dropdown-item" href="/payment-methods?edit=<%= pm.id %>"><i class="bi bi-pencil me-2"></i>Edit</a></li>
+                    <li>
+                      <form action="/payment-methods/<%= pm.id %>/toggle" method="POST">
+                        <button class="dropdown-item"><i class="bi bi-toggle-on me-2"></i><%= pm.is_active ? 'Deactivate' : 'Activate' %></button>
+                      </form>
+                    </li>
+                    <li>
+                      <form action="/payment-methods/<%= pm.id %>?_method=DELETE" method="POST" data-confirm="Delete this payment method?">
+                        <button class="dropdown-item text-danger"><i class="bi bi-trash me-2"></i>Delete</button>
+                      </form>
+                    </li>
+                  </ul>
+                </div>
+              </td>
+            </tr>
+          <% }); %>
+        </tbody>
+      </table>
+    </div>
+  <% } %>
+  <%- include('../partials/pagination') %>
+</div>
+
+<div class="offcanvas offcanvas-end <%= isEditing ? 'show' : '' %>" tabindex="-1" id="pmForm">
+  <div class="offcanvas-header">
+    <h5 class="offcanvas-title"><%= isEditing ? 'Edit Payment Method' : 'New Payment Method' %></h5>
+    <a href="/payment-methods" class="btn-close"></a>
+  </div>
+  <div class="offcanvas-body">
+    <form method="POST" action="/payment-methods<%= isEditing ? '/' + editing.id + '?_method=PUT' : '' %>" data-loading>
+      <div class="mb-3">
+        <label class="form-label">Name *</label>
+        <input class="form-control" name="name" required value="<%= isEditing ? editing.name : '' %>" />
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Type *</label>
+        <select class="form-select" name="type" required>
+          <% types.forEach((t) => { %>
+            <option value="<%= t %>" <%= (isEditing && editing.type === t) ? 'selected' : '' %>><%= t %></option>
+          <% }); %>
+        </select>
+      </div>
+      <div class="row g-2">
+        <div class="col-md-6 mb-3">
+          <label class="form-label">Account Holder</label>
+          <input class="form-control" name="account_holder_name" value="<%= isEditing ? (editing.account_holder_name || '') : '' %>" />
+        </div>
+        <div class="col-md-6 mb-3">
+          <label class="form-label">Bank Name</label>
+          <input class="form-control" name="bank_name" value="<%= isEditing ? (editing.bank_name || '') : '' %>" />
+        </div>
+        <div class="col-md-6 mb-3">
+          <label class="form-label">Account •••• (last 4)</label>
+          <input class="form-control" name="account_number_last4" maxlength="4" value="<%= isEditing ? (editing.account_number_last4 || '') : '' %>" />
+        </div>
+        <div class="col-md-6 mb-3">
+          <label class="form-label">Card •••• (last 4)</label>
+          <input class="form-control" name="card_last4" maxlength="4" value="<%= isEditing ? (editing.card_last4 || '') : '' %>" />
+        </div>
+        <div class="col-md-6 mb-3">
+          <label class="form-label">Wallet Provider</label>
+          <input class="form-control" name="wallet_provider" value="<%= isEditing ? (editing.wallet_provider || '') : '' %>" placeholder="Paytm / GPay / PhonePe" />
+        </div>
+        <div class="col-md-6 mb-3">
+          <label class="form-label">Currency</label>
+          <input class="form-control" name="currency" value="<%= isEditing ? editing.currency : 'INR' %>" />
+        </div>
+        <div class="col-md-6 mb-3">
+          <label class="form-label">Opening Balance</label>
+          <input class="form-control" type="number" step="0.01" name="opening_balance" value="<%= isEditing ? editing.opening_balance : '0' %>" />
+        </div>
+        <div class="col-md-6 mb-3">
+          <label class="form-label">Color</label>
+          <input type="color" class="form-control form-control-color" name="color" value="<%= isEditing ? editing.color : '#0ea5e9' %>" />
+        </div>
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Icon (Bootstrap Icons)</label>
+        <input class="form-control" name="icon" value="<%= isEditing ? editing.icon : 'bi-credit-card-2-front' %>" />
+      </div>
+      <div class="form-check mb-3">
+        <input class="form-check-input" type="checkbox" name="is_active" value="true" id="pmActive" <%= (!isEditing || editing.is_active) ? 'checked' : '' %> />
+        <label class="form-check-label" for="pmActive">Active</label>
+      </div>
+      <div class="d-flex gap-2">
+        <button class="btn btn-primary" type="submit"><i class="bi bi-check2 me-1"></i>Save</button>
+        <a href="/payment-methods" class="btn btn-light">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+<% if (isEditing) { %><div class="offcanvas-backdrop fade show"></div><% } %>

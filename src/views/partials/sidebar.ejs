@@ -1,0 +1,37 @@
+<aside class="sidebar" id="appSidebar">
+  <div class="sidebar-brand">
+    <i class="bi bi-wallet2"></i>
+    <span>ExpenseHub</span>
+  </div>
+  <nav class="sidebar-nav">
+    <a class="nav-link <%= currentPath.startsWith('/dashboard') ? 'active' : '' %>" href="/dashboard">
+      <i class="bi bi-speedometer2"></i><span>Dashboard</span>
+    </a>
+    <a class="nav-link <%= currentPath.startsWith('/expenses') ? 'active' : '' %>" href="/expenses">
+      <i class="bi bi-cash-coin"></i><span>Expenses</span>
+    </a>
+    <a class="nav-link <%= currentPath.startsWith('/incomes') ? 'active' : '' %>" href="/incomes">
+      <i class="bi bi-graph-up-arrow"></i><span>Incomes</span>
+    </a>
+    <a class="nav-link <%= currentPath.startsWith('/categories') ? 'active' : '' %>" href="/categories">
+      <i class="bi bi-tags"></i><span>Categories</span>
+    </a>
+    <a class="nav-link <%= currentPath.startsWith('/payment-methods') ? 'active' : '' %>" href="/payment-methods">
+      <i class="bi bi-credit-card"></i><span>Payment Methods</span>
+    </a>
+    <a class="nav-link <%= currentPath.startsWith('/reports') ? 'active' : '' %>" href="/reports">
+      <i class="bi bi-bar-chart"></i><span>Reports</span>
+    </a>
+    <a class="nav-link <%= currentPath.startsWith('/settings') ? 'active' : '' %>" href="/settings">
+      <i class="bi bi-gear"></i><span>Settings</span>
+    </a>
+    <a class="nav-link <%= currentPath.startsWith('/profile') ? 'active' : '' %>" href="/profile">
+      <i class="bi bi-person-circle"></i><span>Profile</span>
+    </a>
+  </nav>
+  <form action="/logout" method="POST" class="sidebar-logout">
+    <button type="submit" class="btn btn-light w-100">
+      <i class="bi bi-box-arrow-right me-2"></i>Logout
+    </button>
+  </form>
+</aside>

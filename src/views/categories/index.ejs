@@ -1,0 +1,90 @@
+<% const isEditing = !!editing; %>
+<div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+  <div>
+    <h2 class="h4 m-0">Categories</h2>
+    <small class="text-muted">Organize expenses with custom categories.</small>
+  </div>
+  <button class="btn btn-primary" data-bs-toggle="offcanvas" data-bs-target="#categoryForm">
+    <i class="bi bi-plus-lg me-1"></i> New Category
+  </button>
+</div>
+
+<form class="filters-bar" method="GET" action="/categories">
+  <input class="form-control" name="search" placeholder="Search categories..." value="<%= filters.search || '' %>" />
+  <button class="btn btn-outline-primary" type="submit"><i class="bi bi-funnel me-1"></i>Filter</button>
+  <a href="/categories" class="btn btn-outline-secondary">Reset</a>
+</form>
+
+<div class="table-wrapper">
+  <% if (!items.length) { %>
+    <div class="empty-state">
+      <i class="bi bi-tags"></i>
+      <p class="mt-2 mb-0">No categories yet.</p>
+    </div>
+  <% } else { %>
+    <div class="table-responsive">
+      <table class="table align-middle">
+        <thead>
+          <tr><th>Name</th><th>Color</th><th>Icon</th><th class="text-end">Actions</th></tr>
+        </thead>
+        <tbody>
+          <% items.forEach((c) => { %>
+            <tr>
+              <td>
+                <span class="color-dot" style="background: <%= c.color %>"></span>
+                <strong class="ms-2"><%= c.name %></strong>
+              </td>
+              <td><code><%= c.color %></code></td>
+              <td><i class="bi <%= c.icon %>"></i></td>
+              <td class="text-end">
+                <div class="dropdown">
+                  <button class="btn btn-sm btn-light" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></button>
+                  <ul class="dropdown-menu dropdown-menu-end">
+                    <li><a class="dropdown-item" href="/categories?edit=<%= c.id %>"><i class="bi bi-pencil me-2"></i>Edit</a></li>
+                    <li>
+                      <form action="/categories/<%= c.id %>?_method=DELETE" method="POST" data-confirm="Delete this category?">
+                        <button class="dropdown-item text-danger"><i class="bi bi-trash me-2"></i>Delete</button>
+                      </form>
+                    </li>
+                  </ul>
+                </div>
+              </td>
+            </tr>
+          <% }); %>
+        </tbody>
+      </table>
+    </div>
+  <% } %>
+  <%- include('../partials/pagination') %>
+</div>
+
+<!-- Offcanvas form -->
+<div class="offcanvas offcanvas-end <%= isEditing ? 'show' : '' %>" tabindex="-1" id="categoryForm" <%= isEditing ? 'aria-modal="true" role="dialog"' : '' %>>
+  <div class="offcanvas-header">
+    <h5 class="offcanvas-title"><%= isEditing ? 'Edit Category' : 'New Category' %></h5>
+    <a href="/categories" class="btn-close" aria-label="Close"></a>
+  </div>
+  <div class="offcanvas-body">
+    <form method="POST" action="/categories<%= isEditing ? '/' + editing.id + '?_method=PUT' : '' %>" data-loading>
+      <div class="mb-3">
+        <label class="form-label">Name *</label>
+        <input class="form-control" name="name" value="<%= isEditing ? editing.name : '' %>" required />
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Color</label>
+        <input type="color" class="form-control form-control-color" name="color" value="<%= isEditing ? editing.color : '#6366f1' %>" />
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Icon (Bootstrap Icons class)</label>
+        <input class="form-control" name="icon" value="<%= isEditing ? editing.icon : 'bi-tag' %>" placeholder="bi-tag" />
+      </div>
+      <div class="d-flex gap-2">
+        <button class="btn btn-primary" type="submit"><i class="bi bi-check2 me-1"></i>Save</button>
+        <a href="/categories" class="btn btn-light">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+<% if (isEditing) { %>
+  <div class="offcanvas-backdrop fade show"></div>
+<% } %>

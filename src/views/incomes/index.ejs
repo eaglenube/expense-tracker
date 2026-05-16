@@ -1,0 +1,79 @@
+<% const isEditing = !!editing; %>
+<div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+  <div>
+    <h2 class="h4 m-0">Incomes</h2>
+    <small class="text-muted">Record incoming money and salary.</small>
+  </div>
+  <button class="btn btn-primary" data-bs-toggle="offcanvas" data-bs-target="#incomeForm">
+    <i class="bi bi-plus-lg me-1"></i> New Income
+  </button>
+</div>
+
+<form class="filters-bar" method="GET" action="/incomes">
+  <input class="form-control" name="search" placeholder="Search title..." value="<%= filters.search || '' %>" />
+  <select class="form-select" name="payment_method">
+    <option value="">All payment methods</option>
+    <% paymentMethods.forEach((pm) => { %>
+      <option value="<%= pm.id %>" <%= filters.payment_method === pm.id ? 'selected' : '' %>><%= pm.name %></option>
+    <% }); %>
+  </select>
+  <input class="form-control" type="date" name="from_date" value="<%= filters.from_date || '' %>" />
+  <input class="form-control" type="date" name="to_date" value="<%= filters.to_date || '' %>" />
+  <button class="btn btn-outline-primary"><i class="bi bi-funnel me-1"></i>Filter</button>
+  <a href="/incomes" class="btn btn-outline-secondary">Reset</a>
+</form>
+
+<div class="table-wrapper">
+  <% if (!items.length) { %>
+    <div class="empty-state">
+      <i class="bi bi-piggy-bank"></i>
+      <p class="mt-2 mb-0">No incomes recorded yet.</p>
+    </div>
+  <% } else { %>
+    <div class="table-responsive">
+      <table class="table align-middle">
+        <thead>
+          <tr><th>Date</th><th>Title</th><th>Source</th><th>Payment Method</th><th class="text-end">Amount</th><th>Attachment</th><th class="text-end">Actions</th></tr>
+        </thead>
+        <tbody>
+          <% items.forEach((i) => { %>
+            <tr>
+              <td><%= formatDate(i.income_date) %></td>
+              <td>
+                <strong><%= i.title %></strong>
+                <% if (i.description) { %><div class="text-muted small"><%= i.description %></div><% } %>
+              </td>
+              <td><span class="chip"><%= i.source || '—' %></span></td>
+              <td>
+                <% if (i.paymentMethod) { %><span class="chip"><%= i.paymentMethod.name %></span><% } else { %>—<% } %>
+              </td>
+              <td class="text-end"><strong class="text-success"><%= formatCurrency(i.amount, i.paymentMethod ? i.paymentMethod.currency : 'INR') %></strong></td>
+              <td>
+                <% if (i.attachment_path) { %>
+                  <a href="<%= i.attachment_path %>" target="_blank" class="btn btn-sm btn-light"><i class="bi bi-paperclip"></i></a>
+                <% } else { %>—<% } %>
+              </td>
+              <td class="text-end">
+                <div class="dropdown">
+                  <button class="btn btn-sm btn-light" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></button>
+                  <ul class="dropdown-menu dropdown-menu-end">
+                    <li><a class="dropdown-item" href="/incomes?edit=<%= i.id %>"><i class="bi bi-pencil me-2"></i>Edit</a></li>
+                    <li>
+                      <form action="/incomes/<%= i.id %>?_method=DELETE" method="POST" data-confirm="Delete this income?">
+                        <button class="dropdown-item text-danger"><i class="bi bi-trash me-2"></i>Delete</button>
+                      </form>
+                    </li>
+                  </ul>
+                </div>
+              </td>
+            </tr>
+          <% }); %>
+        </tbody>
+      </table>
+    </div>
+  <% } %>
+  <%- include('../partials/pagination') %>
+</div>
+
+<%- include('./form', { editing, paymentMethods }) %>
+<% if (isEditing) { %><div class="offcanvas-backdrop fade show"></div><% } %>

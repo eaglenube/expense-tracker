@@ -1,0 +1,30 @@
+<div class="charts-row" style="grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));">
+  <div class="panel">
+    <h2 class="h5 mb-3">Account Details</h2>
+    <form method="POST" action="/profile" data-loading>
+      <div class="mb-3">
+        <label class="form-label">Full Name</label>
+        <input class="form-control" name="full_name" value="<%= user.full_name %>" required />
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Email</label>
+        <input class="form-control" type="email" name="email" value="<%= user.email %>" required />
+      </div>
+      <button class="btn btn-primary"><i class="bi bi-check2 me-1"></i>Update Profile</button>
+    </form>
+  </div>
+  <div class="panel">
+    <h2 class="h5 mb-3">Change Password</h2>
+    <form method="POST" action="/profile/password" data-loading>
+      <div class="mb-3">
+        <label class="form-label">Current Password</label>
+        <input class="form-control" type="password" name="current_password" required />
+      </div>
+      <div class="mb-3">
+        <label class="form-label">New Password</label>
+        <input class="form-control" type="password" name="new_password" minlength="6" required />
+      </div>
+      <button class="btn btn-primary"><i class="bi bi-shield-lock me-1"></i>Change Password</button>
+    </form>
+  </div>
+</div>

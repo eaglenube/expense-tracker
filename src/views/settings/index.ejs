@@ -1,0 +1,26 @@
+<div class="panel" style="max-width: 720px;">
+  <h2 class="h4 mb-2">Monthly Email Reports</h2>
+  <p class="text-muted">Get a monthly summary of your income, expenses and balances delivered straight to your inbox.</p>
+  <form method="POST" action="/settings" data-loading>
+    <div class="form-check form-switch mb-3">
+      <input class="form-check-input" type="checkbox" id="enabled" name="monthly_summary_enabled" <%= settings.monthly_summary_enabled ? 'checked' : '' %> />
+      <label class="form-check-label" for="enabled">Enable monthly summary emails</label>
+    </div>
+    <div class="row g-2">
+      <div class="col-md-6 mb-3">
+        <label class="form-label">Delivery Day (1–28)</label>
+        <input type="number" min="1" max="28" class="form-control" name="monthly_summary_day" value="<%= settings.monthly_summary_day %>" />
+      </div>
+      <div class="col-md-6 mb-3">
+        <label class="form-label">Timezone</label>
+        <input class="form-control" name="timezone" value="<%= settings.timezone %>" placeholder="Asia/Kolkata" />
+      </div>
+    </div>
+    <div class="mb-3">
+      <label class="form-label">Email Address</label>
+      <input type="email" class="form-control" name="summary_email" value="<%= settings.summary_email || '' %>" />
+      <small class="text-muted">Leave blank to use your account email.</small>
+    </div>
+    <button class="btn btn-primary" type="submit"><i class="bi bi-check2 me-1"></i>Save Settings</button>
+  </form>
+</div>

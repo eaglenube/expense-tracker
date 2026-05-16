@@ -1,0 +1,13 @@
+node_modules
+npm-debug.log
+.env
+.git
+.gitignore
+*.log
+.DS_Store
+src/public/uploads/expenses/*
+src/public/uploads/incomes/*
+!src/public/uploads/expenses/.gitkeep
+!src/public/uploads/incomes/.gitkeep
+README.md
+srs.txt
