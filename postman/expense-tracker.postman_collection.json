@@ -1,0 +1,614 @@
+{
+  "info": {
+    "name": "Expense Tracker API",
+    "description": "Mobile-friendly REST API for the Expense Tracker app. All endpoints are versioned under /api/v1 and authenticate via Bearer JWT (obtained via /auth/login or /auth/register). Login response auto-saves the token into the {{token}} collection variable.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      { "key": "token", "value": "{{token}}", "type": "string" }
+    ]
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:3000/api/v1", "type": "string" },
+    { "key": "token", "value": "", "type": "string" },
+    { "key": "refreshToken", "value": "", "type": "string" },
+    { "key": "categoryId", "value": "", "type": "string" },
+    { "key": "paymentMethodId", "value": "", "type": "string" },
+    { "key": "expenseId", "value": "", "type": "string" },
+    { "key": "incomeId", "value": "", "type": "string" }
+  ],
+  "item": [
+    {
+      "name": "Health",
+      "request": {
+        "auth": { "type": "noauth" },
+        "method": "GET",
+        "header": [],
+        "url": { "raw": "{{baseUrl}}/health", "host": ["{{baseUrl}}"], "path": ["health"] }
+      }
+    },
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Register",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"full_name\": \"New User\",\n  \"email\": \"new.user@example.com\",\n  \"password\": \"password123\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/auth/register", "host": ["{{baseUrl}}"], "path": ["auth", "register"] }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "  const data = pm.response.json().data;",
+                  "  if (data && data.token) pm.collectionVariables.set('token', data.token);",
+                  "  if (data && data.refreshToken) pm.collectionVariables.set('refreshToken', data.refreshToken);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login (seeds {{token}})",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@example.com\",\n  \"password\": \"password123\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/auth/login", "host": ["{{baseUrl}}"], "path": ["auth", "login"] }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('login returns token + refreshToken', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "  const data = pm.response.json().data;",
+                  "  pm.expect(data.token).to.be.a('string');",
+                  "  pm.expect(data.refreshToken).to.be.a('string');",
+                  "  pm.collectionVariables.set('token', data.token);",
+                  "  pm.collectionVariables.set('refreshToken', data.refreshToken);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Refresh (rotates {{token}} + {{refreshToken}})",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refresh_token\": \"{{refreshToken}}\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/auth/refresh", "host": ["{{baseUrl}}"], "path": ["auth", "refresh"] }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('refresh returns new token pair', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "  const data = pm.response.json().data;",
+                  "  pm.expect(data.token).to.be.a('string');",
+                  "  pm.expect(data.refreshToken).to.be.a('string');",
+                  "  pm.collectionVariables.set('token', data.token);",
+                  "  pm.collectionVariables.set('refreshToken', data.refreshToken);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Me",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/auth/me", "host": ["{{baseUrl}}"], "path": ["auth", "me"] }
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "url": { "raw": "{{baseUrl}}/auth/logout", "host": ["{{baseUrl}}"], "path": ["auth", "logout"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Categories",
+      "item": [
+        {
+          "name": "List",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/categories?page=1&limit=10&search=",
+              "host": ["{{baseUrl}}"],
+              "path": ["categories"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "10" },
+                { "key": "search", "value": "" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Dropdown",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/categories/dropdown", "host": ["{{baseUrl}}"], "path": ["categories", "dropdown"] }
+          }
+        },
+        {
+          "name": "Create",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Travel\",\n  \"color\": \"#0ea5e9\",\n  \"icon\": \"bi-airplane\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/categories", "host": ["{{baseUrl}}"], "path": ["categories"] }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "  pm.collectionVariables.set('categoryId', pm.response.json().data.item.id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Show",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/categories/{{categoryId}}", "host": ["{{baseUrl}}"], "path": ["categories", "{{categoryId}}"] }
+          }
+        },
+        {
+          "name": "Update",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Travel & Holiday\",\n  \"color\": \"#0284c7\",\n  \"icon\": \"bi-airplane-fill\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/categories/{{categoryId}}", "host": ["{{baseUrl}}"], "path": ["categories", "{{categoryId}}"] }
+          }
+        },
+        {
+          "name": "Delete",
+          "request": {
+            "method": "DELETE",
+            "url": { "raw": "{{baseUrl}}/categories/{{categoryId}}", "host": ["{{baseUrl}}"], "path": ["categories", "{{categoryId}}"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Payment Methods",
+      "item": [
+        {
+          "name": "List",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/payment-methods?page=1&limit=10&type=&is_active=",
+              "host": ["{{baseUrl}}"],
+              "path": ["payment-methods"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "10" },
+                { "key": "type", "value": "" },
+                { "key": "is_active", "value": "" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Dropdown (active only)",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/payment-methods/dropdown", "host": ["{{baseUrl}}"], "path": ["payment-methods", "dropdown"] }
+          }
+        },
+        {
+          "name": "Create",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Axis Salary\",\n  \"type\": \"Bank Account\",\n  \"bank_name\": \"Axis Bank\",\n  \"account_holder_name\": \"Admin User\",\n  \"account_number_last4\": \"9912\",\n  \"opening_balance\": 25000,\n  \"currency\": \"INR\",\n  \"color\": \"#9333ea\",\n  \"icon\": \"bi-bank\",\n  \"is_active\": true\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/payment-methods", "host": ["{{baseUrl}}"], "path": ["payment-methods"] }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "  pm.collectionVariables.set('paymentMethodId', pm.response.json().data.item.id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Show",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/payment-methods/{{paymentMethodId}}", "host": ["{{baseUrl}}"], "path": ["payment-methods", "{{paymentMethodId}}"] }
+          }
+        },
+        {
+          "name": "Update",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Axis Salary (Primary)\",\n  \"type\": \"Bank Account\",\n  \"opening_balance\": 30000,\n  \"is_active\": true\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/payment-methods/{{paymentMethodId}}", "host": ["{{baseUrl}}"], "path": ["payment-methods", "{{paymentMethodId}}"] }
+          }
+        },
+        {
+          "name": "Toggle Active",
+          "request": {
+            "method": "POST",
+            "url": { "raw": "{{baseUrl}}/payment-methods/{{paymentMethodId}}/toggle", "host": ["{{baseUrl}}"], "path": ["payment-methods", "{{paymentMethodId}}", "toggle"] }
+          }
+        },
+        {
+          "name": "Delete",
+          "request": {
+            "method": "DELETE",
+            "url": { "raw": "{{baseUrl}}/payment-methods/{{paymentMethodId}}", "host": ["{{baseUrl}}"], "path": ["payment-methods", "{{paymentMethodId}}"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Expenses",
+      "item": [
+        {
+          "name": "List",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/expenses?page=1&limit=10&search=&category=&payment_method=&from_date=&to_date=&sort=expense_date&order=desc",
+              "host": ["{{baseUrl}}"],
+              "path": ["expenses"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "10" },
+                { "key": "search", "value": "" },
+                { "key": "category", "value": "" },
+                { "key": "payment_method", "value": "" },
+                { "key": "from_date", "value": "" },
+                { "key": "to_date", "value": "" },
+                { "key": "sort", "value": "expense_date", "description": "expense_date | amount | title | created_at" },
+                { "key": "order", "value": "desc", "description": "asc | desc" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create (JSON)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Test Lunch\",\n  \"description\": \"Created via API\",\n  \"amount\": 450,\n  \"expense_date\": \"2026-05-16\",\n  \"category_id\": \"<paste category UUID>\",\n  \"payment_method_id\": \"<paste payment method UUID>\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/expenses", "host": ["{{baseUrl}}"], "path": ["expenses"] }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 201) pm.collectionVariables.set('expenseId', pm.response.json().data.item.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create (multipart with attachment)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "title", "value": "Receipt scan demo", "type": "text" },
+                { "key": "description", "value": "via Postman", "type": "text" },
+                { "key": "amount", "value": "125.50", "type": "text" },
+                { "key": "expense_date", "value": "2026-05-16", "type": "text" },
+                { "key": "category_id", "value": "<paste category UUID>", "type": "text" },
+                { "key": "payment_method_id", "value": "<paste payment method UUID>", "type": "text" },
+                { "key": "attachment", "type": "file", "src": [] }
+              ]
+            },
+            "url": { "raw": "{{baseUrl}}/expenses", "host": ["{{baseUrl}}"], "path": ["expenses"] }
+          }
+        },
+        {
+          "name": "Show",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/expenses/{{expenseId}}", "host": ["{{baseUrl}}"], "path": ["expenses", "{{expenseId}}"] }
+          }
+        },
+        {
+          "name": "Update",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Test Lunch (updated)\",\n  \"amount\": 500,\n  \"expense_date\": \"2026-05-16\",\n  \"category_id\": \"<paste category UUID>\",\n  \"payment_method_id\": \"<paste payment method UUID>\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/expenses/{{expenseId}}", "host": ["{{baseUrl}}"], "path": ["expenses", "{{expenseId}}"] }
+          }
+        },
+        {
+          "name": "Delete",
+          "request": {
+            "method": "DELETE",
+            "url": { "raw": "{{baseUrl}}/expenses/{{expenseId}}", "host": ["{{baseUrl}}"], "path": ["expenses", "{{expenseId}}"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Incomes",
+      "item": [
+        {
+          "name": "List",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/incomes?page=1&limit=10&search=&payment_method=&from_date=&to_date=&sort=income_date&order=desc",
+              "host": ["{{baseUrl}}"],
+              "path": ["incomes"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "10" },
+                { "key": "search", "value": "" },
+                { "key": "payment_method", "value": "" },
+                { "key": "from_date", "value": "" },
+                { "key": "to_date", "value": "" },
+                { "key": "sort", "value": "income_date" },
+                { "key": "order", "value": "desc" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Side gig\",\n  \"description\": \"via API\",\n  \"amount\": 7500,\n  \"income_date\": \"2026-05-16\",\n  \"source\": \"Freelance\",\n  \"payment_method_id\": \"<paste payment method UUID>\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/incomes", "host": ["{{baseUrl}}"], "path": ["incomes"] }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 201) pm.collectionVariables.set('incomeId', pm.response.json().data.item.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Show",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/incomes/{{incomeId}}", "host": ["{{baseUrl}}"], "path": ["incomes", "{{incomeId}}"] }
+          }
+        },
+        {
+          "name": "Update",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Side gig (updated)\",\n  \"amount\": 8000,\n  \"income_date\": \"2026-05-16\",\n  \"source\": \"Freelance\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/incomes/{{incomeId}}", "host": ["{{baseUrl}}"], "path": ["incomes", "{{incomeId}}"] }
+          }
+        },
+        {
+          "name": "Delete",
+          "request": {
+            "method": "DELETE",
+            "url": { "raw": "{{baseUrl}}/incomes/{{incomeId}}", "host": ["{{baseUrl}}"], "path": ["incomes", "{{incomeId}}"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Dashboard",
+      "item": [
+        {
+          "name": "Overview (full payload)",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/dashboard", "host": ["{{baseUrl}}"], "path": ["dashboard"] }
+          }
+        },
+        {
+          "name": "Summary cards only",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/dashboard/summary", "host": ["{{baseUrl}}"], "path": ["dashboard", "summary"] }
+          }
+        },
+        {
+          "name": "Chart: by Category",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/dashboard/charts/category", "host": ["{{baseUrl}}"], "path": ["dashboard", "charts", "category"] }
+          }
+        },
+        {
+          "name": "Chart: Monthly Trends",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/dashboard/charts/trends", "host": ["{{baseUrl}}"], "path": ["dashboard", "charts", "trends"] }
+          }
+        },
+        {
+          "name": "Chart: Payment Method Usage",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/dashboard/charts/payment-method", "host": ["{{baseUrl}}"], "path": ["dashboard", "charts", "payment-method"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Reports",
+      "item": [
+        {
+          "name": "Summary",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/reports?from_date=&to_date=",
+              "host": ["{{baseUrl}}"],
+              "path": ["reports"],
+              "query": [
+                { "key": "from_date", "value": "" },
+                { "key": "to_date", "value": "" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Export CSV",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/reports/export.csv?from_date=&to_date=",
+              "host": ["{{baseUrl}}"],
+              "path": ["reports", "export.csv"],
+              "query": [
+                { "key": "from_date", "value": "" },
+                { "key": "to_date", "value": "" }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Settings",
+      "item": [
+        {
+          "name": "Get",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/settings", "host": ["{{baseUrl}}"], "path": ["settings"] }
+          }
+        },
+        {
+          "name": "Update",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"monthly_summary_enabled\": true,\n  \"monthly_summary_day\": 1,\n  \"summary_email\": \"admin@example.com\",\n  \"timezone\": \"Asia/Kolkata\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/settings", "host": ["{{baseUrl}}"], "path": ["settings"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Profile",
+      "item": [
+        {
+          "name": "Get",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/profile", "host": ["{{baseUrl}}"], "path": ["profile"] }
+          }
+        },
+        {
+          "name": "Update",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"full_name\": \"Admin User\",\n  \"email\": \"admin@example.com\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/profile", "host": ["{{baseUrl}}"], "path": ["profile"] }
+          }
+        },
+        {
+          "name": "Change Password",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"current_password\": \"password123\",\n  \"new_password\": \"newPassword123\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/profile/password", "host": ["{{baseUrl}}"], "path": ["profile", "password"] }
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -10,6 +10,7 @@ const expressLayouts = require('express-ejs-layouts');
 
 const { sequelize } = require('./config/database');
 const routes = require('./routes');
+const apiRoutes = require('./routes/api');
 const { errorHandler, notFoundHandler } = require('./middleware/error');
 const { attachLocals } = require('./middleware/locals');
 
@@ -56,6 +57,9 @@ sessionStore.sync();
 
 app.use(flash());
 app.use(attachLocals);
+
+// JSON REST API for mobile clients (JWT-authenticated)
+app.use('/api/v1', apiRoutes);
 
 app.use('/', routes);
 

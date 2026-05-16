@@ -230,6 +230,43 @@ All tables use **UUID primary keys** and are wired up with proper FKs / cascade 
 
 ---
 
+## REST API (for mobile clients)
+
+In addition to the web UI, a versioned JSON REST API is mounted at **`/api/v1`** for mobile/native apps. It uses **Bearer JWT** authentication.
+
+### Auth
+```http
+POST /api/v1/auth/register     # body: { full_name, email, password } → { user, token, refreshToken }
+POST /api/v1/auth/login        # body: { email, password } → { user, token, refreshToken }
+POST /api/v1/auth/refresh      # body: { refresh_token } → { user, token, refreshToken } (rotated)
+GET  /api/v1/auth/me           # Authorization: Bearer <token>
+POST /api/v1/auth/logout
+```
+
+Tokens are split into a short-named `token` (access JWT, default 30 d) and a `refreshToken` (default 60 d). Access tokens carry `type: "access"`, refresh tokens carry `type: "refresh"` — they cannot be used interchangeably. `/auth/refresh` rotates both: clients should replace their stored pair every time. Configure via `JWT_SECRET`, `JWT_REFRESH_SECRET`, `JWT_EXPIRES_IN`, `JWT_REFRESH_EXPIRES_IN`.
+
+### Resources (all require `Authorization: Bearer <token>`)
+| Resource          | Endpoints                                                                                  |
+|-------------------|--------------------------------------------------------------------------------------------|
+| Categories        | `GET/POST/PUT/DELETE /api/v1/categories[/:id]`, `GET /api/v1/categories/dropdown`          |
+| Payment Methods   | `GET/POST/PUT/DELETE /api/v1/payment-methods[/:id]`, `POST /api/v1/payment-methods/:id/toggle`, `GET /api/v1/payment-methods/dropdown` |
+| Expenses          | `GET/POST/PUT/DELETE /api/v1/expenses[/:id]` (supports `multipart/form-data` with `attachment`) |
+| Incomes           | `GET/POST/PUT/DELETE /api/v1/incomes[/:id]` (supports `multipart/form-data` with `attachment`) |
+| Dashboard         | `GET /api/v1/dashboard` (full), `GET /api/v1/dashboard/summary`, `GET /api/v1/dashboard/charts/{category,trends,payment-method}` |
+| Reports           | `GET /api/v1/reports`, `GET /api/v1/reports/export.csv`                                    |
+| Settings          | `GET/PUT /api/v1/settings`                                                                 |
+| Profile           | `GET/PUT /api/v1/profile`, `PUT /api/v1/profile/password`                                  |
+| Health            | `GET /api/v1/health` (no auth)                                                             |
+
+### Response envelope
+```json
+{ "ok": true, "data": { /* ... */ } }
+{ "ok": false, "error": { "message": "...", "details": { "field": "..." } } }
+```
+
+### Postman
+Import the collection at **`postman/expense-tracker.postman_collection.json`** — it contains every endpoint grouped by resource, an auto-saving login flow (the `Login` request stores the JWT into the `{{token}}` collection variable), and collection-level Bearer auth so child requests just work.
+
 ## Screenshots
 
 ### Dashboard
