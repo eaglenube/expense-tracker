@@ -231,4 +231,28 @@ All tables use **UUID primary keys** and are wired up with proper FKs / cascade 
 ---
 
 ## Screenshots
-_Add screenshots of Dashboard, Expenses, Reports, etc._
+
+### Dashboard
+Summary cards (income, expense, remaining, this-month, cash) plus Chart.js charts for expense-by-category, monthly trends and income-vs-expense.
+
+![Dashboard](screenshots/screenshot-0.png)
+
+### Expenses
+Searchable, filterable, paginated expense list with category and payment-method chips.
+
+![Expenses list](screenshots/screenshot-1.png)
+
+### New Expense (Offcanvas Form)
+Right-side Bootstrap offcanvas form with drag-and-drop attachment upload.
+
+![New Expense offcanvas form](screenshots/screenshot-2.png)
+
+### Payment Methods
+Track balances across bank accounts, cards, wallets and cash with active/inactive status.
+
+![Payment Methods](screenshots/screenshot-3.png)
+
+### Incomes
+Record incoming money and salary with source and payment-method tagging.
+
+![Incomes list](screenshots/screenshot-4.png)
