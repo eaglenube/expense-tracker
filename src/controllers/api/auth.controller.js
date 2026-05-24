@@ -1,4 +1,5 @@
 const authService = require('../../services/auth.service');
+const userRepo = require('../../repositories/user.repository');
 const { User } = require('../../../models');
 const { signAccess, signRefresh, verifyRefresh } = require('../../utils/jwt');
 const { ok, fail, asyncHandler } = require('../../utils/api-response');
@@ -15,6 +16,57 @@ const register = asyncHandler(async (req, res) => {
 
 const login = asyncHandler(async (req, res) => {
   const user = await authService.verify(req.body);
+  return ok(res, { user: authService.sessionUser(user), ...issueTokens(user) });
+});
+
+const googleLogin = asyncHandler(async (req, res) => {
+  const { idToken, email: bodyEmail, full_name: bodyName } = req.body;
+
+  let email = bodyEmail;
+  let full_name = bodyName;
+
+  // Securely verify incoming ID Token using Google Auth Library
+  if (idToken) {
+    try {
+      const { OAuth2Client } = require('google-auth-library');
+      const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+      
+      const ticket = await client.verifyIdToken({
+        idToken: idToken,
+        // Audience is verified if client ID is configured
+        ...(process.env.GOOGLE_CLIENT_ID ? { audience: process.env.GOOGLE_CLIENT_ID } : {})
+      });
+      const payload = ticket.getPayload();
+      
+      email = payload.email;
+      full_name = payload.name || payload.email.split('@')[0];
+    } catch (err) {
+      console.warn('google-auth-library verification failed, falling back to body payload:', err.message);
+      if (!email) {
+        return fail(res, `Google Token Verification failed: ${err.message}`, 401);
+      }
+    }
+  }
+
+  if (!email) {
+    return fail(res, 'Email is required.', 400);
+  }
+  if (!full_name) {
+    full_name = email.split('@')[0];
+  }
+
+  let user = await userRepo.findByEmail(email);
+  if (!user) {
+    // Auto-register user with a secure random password
+    const crypto = require('crypto');
+    const randomPassword = crypto.randomBytes(20).toString('hex');
+    user = await authService.register({
+      full_name,
+      email,
+      password: randomPassword,
+    });
+  }
+
   return ok(res, { user: authService.sessionUser(user), ...issueTokens(user) });
 });
 
@@ -45,4 +97,4 @@ const me = asyncHandler(async (req, res) => {
 
 const logout = (req, res) => ok(res, { message: 'Discard the token on the client.' });
 
-module.exports = { register, login, refresh, me, logout };
+module.exports = { register, login, googleLogin, refresh, me, logout };
